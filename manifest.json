@@ -1,0 +1,12 @@
+{
+  "name": "Conference-Booking-UI-App",
+  "short_name": "Predix-Conference",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#007ACC",
+  "icons": [
+    {
+      "src": "favicon.ico"
+    }
+  ]
+}

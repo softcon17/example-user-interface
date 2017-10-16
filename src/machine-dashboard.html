@@ -1,0 +1,319 @@
+<link rel="import" href="../bower_components/polymer/polymer.html" />
+
+<!-- Predix components used by this app view -->
+<link rel="import" href="../bower_components/px-data-table/px-data-table.html" />
+<link rel="import" href="../bower_components/px-card/px-card.html" />
+<link rel="import" href="../bower_components/px-dropdown/px-dropdown.html" />
+<link rel="import" href="../bower_components/px-datetime-picker/px-datetime-picker.html" />
+<link rel="import" href="../bower_components/px-modal/px-modal.html" />
+<link rel="import" href="../bower_components/px-alert-message/px-alert-message.html" />
+
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html"/>
+<!-- Load styles -->
+<link rel="import" href="../css/px-sample-app-styles.html" />
+
+<dom-module id="machine-dashboard">
+  <template>
+    <style include="px-sample-app-styles">
+      px-card {
+        border: solid 1px #CCC;
+        border-radius: 3px;
+        box-shadow: 3px 3px 5px #BBB;
+        margin: 10px;
+        padding-bottom: 20px;
+      }
+      px-data-table {
+        width: 100%;
+      }
+      #add-machine,
+      #update-machine-status,
+      #make-booking,
+      #booking-table {
+        margin-top: -30px;
+      }
+
+      #alertMessageContainer {
+        position: fixed;
+        top: 45px;
+        right: 15px;
+        z-index: 1020;
+      }
+      #rest-modal-content {
+        min-width: 650px;
+      }
+      .disabled {
+        background-color: #e0e0e0;
+      }
+      .dropdown {
+        width: 100%;
+      }
+      .inputs,
+      .submit {
+        width: 50%;
+      }
+      .machine-details {
+        border: solid 1px;
+        border-radius: 5px;
+        margin: 5px;
+        padding: 5px;
+        float: left;
+
+      }
+      .offline {
+        background-color: #f34336;
+      }
+      .online {
+        background-color: #7fae1b;
+      }
+      .refresh-icon {
+        --iron-icon-width: 16px;
+        --iron-icon-height: 16px;
+      }
+      .rest-btn{
+        transform: translateY(90%);
+      }
+      .submit {
+        text-align: center;
+      }
+      #machine-actions {
+        width:50%;
+        max-width:50%;
+      }
+      .wrap-controll {
+        flex-wrap: wrap;
+      }
+    </style>
+
+    <iron-ajax
+        id="restPostMachine"
+        method="POST"
+        content-type="application/json"
+        handle-as="json"
+        on-response="_machinePostSuccess"
+        on-error="_restFail"
+        debounce-duration="300">
+    </iron-ajax>
+    <iron-ajax
+        id="restGetMachine"
+        method="GET"
+        handle-as="json"
+        on-response="_machineGetSuccess"
+        on-error="_restFail"
+        debounce-duration="300">
+    </iron-ajax>
+    <iron-ajax
+        id="restPutMachine"
+        method="PUT"
+        content-type="application/json"
+        handle-as="json"
+        on-response="_machinePutSuccess"
+        on-error="_restFail"
+        debounce-duration="300">
+    </iron-ajax>
+    <iron-ajax
+        id="restGetBooking"
+        method="GET"
+        handle-as="json"
+        on-response="_bookingGetSuccess"
+        on-error="_restFail"
+        debounce-duration="300">
+    </iron-ajax>
+    <iron-ajax
+        id="restPostBooking"
+        content-type="application/json"
+        method="POST"
+        handle-as="json"
+        on-response="_bookingPostSuccess"
+        on-error="_restFail"
+        debounce-duration="300">
+    </iron-ajax>
+
+    <div id="alertMessageContainer">
+    </div>
+    <div class="layout">
+      <div id="machine-actions" class="layout__item">
+        <px-card class="light-card" header-text="Create Machine" icon="px-obj:machine">
+          <div class='actions'>
+            <px-icon on-tap="_open_modal" icon='px-utl:app-settings'></px-icon>
+          </div>
+          <div id="add-machine" class="u-mh flex flex--row flex--middle">
+            <div class="inputs">
+              <div class="u-mv u-mr">
+                <label for="input-machine-name">Machine Name</label>
+                <input id="input-machine-name" placeholder="CNC Router" class="text-input" type="text" />
+              </div>
+              <div class="u-mv u-mr">
+                <label for="input-machine-location">Location</label>
+                <input id="input-machine-location" placeholder="Cell 3B" class="text-input" type="text" />
+              </div>
+            </div>
+            <div class="submit">
+              <button on-tap="_launch_machine_post_ajax" class="btn btn--call-to-action">Add New Machine</button>
+            </div>
+          </div>
+        </px-card>
+        <px-card class="light-card" header-text="Update Machine Status" icon="px-obj:plant">
+          <div class='actions'>
+            <px-icon id="UpdateMachineStatusRefreshBtn" class="refresh-icon" on-tap="_refresh_data" icon='px-nav:reload'></px-icon>
+            <px-icon on-tap="_open_modal" icon='px-utl:app-settings'></px-icon>
+          </div>
+          <div id="update-machine-status" class="u-mh flex flex--row flex--middle">
+            <div class="inputs">
+              <div class="u-mv u-mr">
+                <label for="drop-machine-name">Machine Name</label>
+                <px-dropdown class="dropdown" id="drop-machine-name"></px-dropdown class="dropdown">
+              </div>
+              <div class="u-mv u-mr">
+                <label for="drop-machine-status">Status</label>
+                <px-dropdown class="dropdown" id="drop-machine-status" items='[[machineStatus]]'></px-dropdown class="dropdown">
+              </div>
+            </div>
+            <div class="submit">
+              <button on-tap="_launch_machine_put_ajax" class="btn btn--call-to-action u-mv+">Update Machine Status</button>
+            </div>
+          </div>
+        </px-card>
+        <px-card class="light-card" header-text="Machine Status" icon="px-obj:manufacturing-line">
+          <div class='actions'>
+            <px-icon id="MachineStatusRefreshBtn" class="refresh-icon" on-tap="_refresh_data" icon='px-nav:reload'></px-icon>
+            <px-icon on-tap="_open_modal" icon='px-utl:app-settings'></px-icon>
+          </div>
+          <div class="flex flex--row flex--left flex--top wrap-controll">
+            <template is="dom-repeat" items="{{machines}}">
+              <div class$="machine-details {{item.status}}">
+                <div class="machine-name">
+                  <b>{{item.name}}</b>
+                </div>
+                <span class="machine-status-symbol"></span>
+                <spanclass="machine-status-text">{{item.status}}</span>
+              </div>
+            </template>
+          </div>
+        </px-card>
+      </div>
+
+      <div id="booking-actions" class="layout__item">
+        <div class="u-mh+">
+          <px-card class="light-card" header-text="Make Booking" icon="px-fea:attribute">
+            <div class='actions'>
+              <px-icon id="MakeBookingRefreshBtn" class="refresh-icon" on-tap="_refresh_data" icon='px-nav:reload'></px-icon>
+              <px-icon on-tap="_open_modal" icon='px-utl:app-settings'></px-icon>
+            </div>
+            <div id="make-booking" class="u-mh+ flex flex--row flex--middle">
+              <div class="inputs">
+                <div class="u-mv+ u-mr++">
+                  <label for="drop-machine">Machine</label>
+                  <px-dropdown class="dropdown" id="drop-machine"></px-dropdown class="dropdown">
+                </div>
+                <div class="u-mv+ u-mr++">
+                  <label for="input-job-id">Job ID</label>
+                  <input id="input-job-id" placeholder="J1337" class="text-input" type="text" />
+                </div>
+                <div class="u-mv+ u-mr++">
+                  <label for="day-picker-job">Day</label>
+                  <px-datetime-picker
+                      id="day-picker-job"
+                      hide-time
+                      allow-wrap
+                      date-format="YYYY/MM/DD"
+                      time-format="HH:mm:ss"
+                      time-zone="UTC"
+                      show-time-zone="none"
+                      date-time='[[dateTimeNow]]'
+                      min='"2016-09-12T12:59:16.586Z"'
+                      max='"2017-12-31T23:59:59.999Z"'>
+                  </px-datetime-picker>
+                </div>
+                <div class="u-mv+ u-mr++">
+                  <label for="drop-timeslot">Timeslot</label>
+                  <px-dropdown class="dropdown" id="drop-timeslot" items='[[timeslots]]'></px-dropdown class="dropdown">
+                </div>
+              </div>
+              <div class="submit">
+                <button on-tap="_launch_booking_post_ajax" class="btn btn--call-to-action u-mv+">Create Booking</button>
+              </div>
+            </div>
+          </px-card>
+          <px-card class="light-card" header-text="Bookings" icon="px-fea:templates">
+            <div class='actions'>
+              <px-icon id="BookingsRefreshBtn" class="refresh-icon" on-tap="_refresh_data" icon='px-nav:reload'></px-icon>
+              <px-icon on-tap="_open_modal" icon='px-utl:app-settings'></px-icon>
+            </div>
+            <div id="booking-table" class="u-mh+ flex flex--row flex--middle">
+              <px-data-table table-data='[[bookings]]'>
+              </px-data-table>
+            </div>
+          </px-card>
+        </div>
+      </div>
+    </div>
+    <px-modal
+        id="urlModal"
+        btn-modal-negative="Close"
+        modal-heading="Endpoints">
+      <div id="rest-modal-content">
+        <div id="rest-get-machine" class="layout layout--rev">
+          <div class="layout__item inputs">
+            <div class="u-mv+ u-mr++">
+              <label for="input-get-machine">GET Machines</label>
+              <input id="input-get-machine" placeholder="https://my-predix-app.run.aws-usw02-pr.ice.predix.io/" class="text-input" type="url"/>
+            </div>
+          </div>
+          <div class="layout__item u-1/4 submit">
+            <button on-tap="_launch_machine_get_ajax" class="btn rest-btn btn--call-to-action">Update</button>
+          </div>
+        </div>
+
+        <div id="rest-post-machine" class="layout layout--rev">
+          <div class="layout__item inputs">
+            <div class="u-mv+ u-mr++">
+              <label for="input-post-machine">POST New Machine</label>
+              <input id="input-post-machine" placeholder="https://my-predix-app.run.aws-usw02-pr.ice.predix.io/" class="text-input" type="url"/>
+            </div>
+          </div>
+          <div class="layout__item u-1/4 submit">
+            <button on-tap="_launch_machine_post_ajax" class="btn rest-btn btn--call-to-action">Update</button>
+          </div>
+        </div>
+
+        <div id="rest-put-machine" class="layout layout--rev">
+          <div class="layout__item inputs">
+            <div class="u-mv+ u-mr++">
+              <label for="input-put-machine">PUT Machine Status</label>
+              <input id="input-put-machine" placeholder="https://my-predix-app.run.aws-usw02-pr.ice.predix.io/" class="text-input" type="url"/>
+            </div>
+          </div>
+          <div class="layout__item u-1/4 submit">
+            <button on-tap="_launch_machine_put_ajax"  class="btn rest-btn btn--call-to-action">Update</button>
+          </div>
+        </div>
+
+        <div id="rest-get-booking" class="layout layout--rev">
+          <div class="layout__item inputs">
+            <div class="u-mv+ u-mr++">
+              <label for="input-get-booking">GET Bookings</label>
+              <input id="input-get-booking" placeholder="https://my-predix-app.run.aws-usw02-pr.ice.predix.io/" class="text-input" type="url"/>
+            </div>
+          </div>
+          <div class="layout__item u-1/4 submit">
+            <button on-tap="_launch_booking_get_ajax" class="btn rest-btn  btn--call-to-action">Update</button>
+          </div>
+        </div>
+
+        <div id="rest-post-machine" class="layout layout--rev">
+          <div class="layout__item inputs">
+            <div class="u-mv+ u-mr++">
+              <label for="input-post-booking">Post Booking</label>
+              <input id="input-post-booking" placeholder="https://my-predix-app.run.aws-usw02-pr.ice.predix.io/" class="text-input" type="url"/>
+            </div>
+          </div>
+          <div class="layout__item u-1/4 submit">
+            <button on-tap="_launch_booking_post_ajax" class="btn rest-btn btn--call-to-action">Update</button>
+          </div>
+        </div>
+      </div>
+    </px-modal>
+
+  </template>
+</dom-module>
+<script src="machine-dashboard.js"></script>

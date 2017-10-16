@@ -1,0 +1,28 @@
+<link rel="import" href="../bower_components/polymer/polymer.html" />
+
+<!-- Predix components used by this app -->
+<link rel="import" href="../bower_components/px-context-browser/px-context-browser.html" />
+<link rel="import" href="../bower_components/px-context-browser/px-context-browser-trigger.html" />
+<link rel="import" href="../bower_components/px-dropdown/px-dropdown.html" />
+<link rel="import" href="../bower_components/px-app-helpers/px-app-header/px-app-header.html" />
+
+<!-- Views used by the app -->
+<link rel="import" href="machine-dashboard.html" />
+
+<!-- Load styles -->
+<link rel="import" href="../css/px-sample-app-styles.html" />
+
+<dom-module id="machine-booking-app">
+  <template>
+    <style include="px-sample-app-styles">
+      #machine-dashboard {
+        margin-top: .5rem;
+      }
+    </style>
+    <px-app-header>
+      <machine-dashboard id="machine-dashboard"></machine-dashboard>
+    </px-app-header>
+
+  </template>
+</dom-module>
+<script src="machine-booking-app.js"></script>
