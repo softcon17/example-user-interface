@@ -50,6 +50,7 @@
       .inputs,
       .submit {
         width: 50%;
+        flex-basis: auto !important;
       }
       .machine-details {
         border: solid 1px;
@@ -57,7 +58,6 @@
         margin: 5px;
         padding: 5px;
         float: left;
-
       }
       .offline {
         background-color: #f34336;
@@ -81,6 +81,9 @@
       }
       .wrap-controll {
         flex-wrap: wrap;
+	  }
+      machine-dashboard:first-child {
+        flex-basis: auto;
       }
     </style>
 
@@ -97,6 +100,7 @@
         id="restGetMachine"
         method="GET"
         handle-as="json"
+        content-type="application/json"
         on-response="_machineGetSuccess"
         on-error="_restFail"
         debounce-duration="300">
@@ -114,6 +118,7 @@
         id="restGetBooking"
         method="GET"
         handle-as="json"
+        content-type="application/json"
         on-response="_bookingGetSuccess"
         on-error="_restFail"
         debounce-duration="300">
@@ -148,7 +153,7 @@
               </div>
             </div>
             <div class="submit">
-              <button on-tap="_launch_machine_post_ajax" class="btn btn--call-to-action">Add New Machine</button>
+              <button on-tap="_launch_machine_post" class="btn btn--call-to-action">Add New Machine</button>
             </div>
           </div>
         </px-card>
@@ -169,7 +174,7 @@
               </div>
             </div>
             <div class="submit">
-              <button on-tap="_launch_machine_put_ajax" class="btn btn--call-to-action u-mv+">Update Machine Status</button>
+              <button on-tap="_launch_machine_put" class="btn btn--call-to-action u-mv+">Update Machine Status</button>
             </div>
           </div>
         </px-card>
@@ -230,7 +235,7 @@
                 </div>
               </div>
               <div class="submit">
-                <button on-tap="_launch_booking_post_ajax" class="btn btn--call-to-action u-mv+">Create Booking</button>
+                <button on-tap="_launch_booking_post" class="btn btn--call-to-action u-mv+">Create Booking</button>
               </div>
             </div>
           </px-card>
@@ -272,7 +277,7 @@
             </div>
           </div>
           <div class="layout__item u-1/4 submit">
-            <button on-tap="_launch_machine_post_ajax" class="btn rest-btn btn--call-to-action">Update</button>
+            <button on-tap="_do_machine_post" class="btn rest-btn btn--call-to-action">Update</button>
           </div>
         </div>
 
@@ -284,7 +289,7 @@
             </div>
           </div>
           <div class="layout__item u-1/4 submit">
-            <button on-tap="_launch_machine_put_ajax"  class="btn rest-btn btn--call-to-action">Update</button>
+            <button on-tap="_do_machine_put"  class="btn rest-btn btn--call-to-action">Update</button>
           </div>
         </div>
 
@@ -308,7 +313,7 @@
             </div>
           </div>
           <div class="layout__item u-1/4 submit">
-            <button on-tap="_launch_booking_post_ajax" class="btn rest-btn btn--call-to-action">Update</button>
+            <button on-tap="_do_booking_post" class="btn rest-btn btn--call-to-action">Update</button>
           </div>
         </div>
       </div>

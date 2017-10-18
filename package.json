@@ -32,7 +32,7 @@
         "yargs": "^6.0.0"
     },
     "scripts": {
-        "start": "gulp sass && gulp serve",
+        "start": "gulp build && gulp serve",
         "test": "./node_modules/.bin/wct"
     }
 }
