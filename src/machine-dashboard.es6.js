@@ -134,29 +134,61 @@
       this._launch_machine_get_ajax();
       this._launch_booking_get_ajax();
     },
-    _launch_machine_post_ajax: function() {
+
+    _launch_machine_post : function() {
+      if (this.$['input-machine-name'].value && this.$['input-machine-location'].value) {
+        this.launch_machine_post_ajax(JSON.stringify({
+          "name": this.$['input-machine-name'].value,
+          "location": this.$['input-machine-location'].value
+        }));
+      }
+      else {
+        this.displayAlert(
+          'Uh Oh!',
+          'There is no machine data to send!',
+          'important'
+        );
+      }
+    },
+    _do_machine_post: function() {
+      this.launch_machine_post_ajax({});
+    },
+
+    launch_machine_post_ajax: function(body) {
       let buildAjax = this.$.restPostMachine;
       buildAjax.url = this.$['input-post-machine'].value;
-      buildAjax.body = JSON.stringify({
-        "name": this.$['input-machine-name'].value,
-        "location": this.$['input-machine-location'].value
-      });
-      console.log(buildAjax.body);
+      buildAjax.body = body;
       buildAjax.generateRequest();
     },
+
     _launch_machine_get_ajax: function() {
       let buildAjax = this.$.restGetMachine;
       buildAjax.url = this.$['input-get-machine'].value || 'undefined';
       buildAjax.generateRequest();
     },
-    _launch_machine_put_ajax: function() {
+
+    _launch_machine_put : function() {
+      if (this.$['drop-machine-name'].selected && this.$['drop-machine-status'].selected) {
+        this.launch_machine_put_ajax(JSON.stringify({
+          "id": this.$['drop-machine-name'].selected,
+          "status": this.$['drop-machine-status'].selected
+        }));
+      }
+      else {
+        this.displayAlert(
+          'Uh Oh!',
+          'There is no machine data to send!',
+          'important'
+        );
+      }
+    },
+    _do_machine_put: function() {
+      this.launch_machine_put_ajax({});
+    },
+    launch_machine_put_ajax: function(body) {
       let buildAjax = this.$.restPutMachine;
       buildAjax.url = this.$['input-put-machine'].value;
-      buildAjax.body = JSON.stringify({
-        "id": this.$['drop-machine-name'].selected,
-        "status": this.$['drop-machine-status'].selected
-      });
-      console.log(buildAjax.body);
+      buildAjax.body = body;
       buildAjax.generateRequest();
     },
     _launch_booking_get_ajax: function() {
@@ -164,17 +196,34 @@
       buildAjax.url = this.$['input-get-booking'].value  || 'undefined';
       buildAjax.generateRequest();
     },
-    _launch_booking_post_ajax: function() {
+
+    _launch_booking_post: function() {
+      if (((this.$['drop-machine'].selected && this.$['input-job-id'].value)
+          && this.$['drop-timeslot'].selected)
+          && this.$['input-post-booking'].value ) {
+
+        this.launch_booking_post_ajax(JSON.stringify({
+          "machineid": this.$['drop-machine'].selected,
+          "jobid": this.$['input-job-id'].value,
+          "day": this.$['day-picker-job'].dateTime.substr(0, 10),
+          "timeslot": this.$['drop-timeslot'].selected}));
+      }
+      else {
+        this.displayAlert(
+          'Uh Oh!',
+          'There is no booking data to send!',
+          'important'
+        );
+      }
+    },
+    _do_booking_post: function() {
+      this.launch_booking_post_ajax({});
+    },
+    launch_booking_post_ajax: function(body) {
       let buildAjax = this.$.restPostBooking;
       buildAjax.url = this.$['input-post-booking'].value;
-
-      buildAjax.body = JSON.stringify({
-        "machineid": this.$['drop-machine'].selected,
-        "jobid": this.$['input-job-id'].value,
-        "day": this.$['day-picker-job'].dateTime.substr(0, 10),
-        "timeslot": this.$['drop-timeslot'].selected
-      });
-      console.log(buildAjax.body);
+      buildAjax.type = "json";
+      buildAjax.body = body;
       buildAjax.generateRequest();
     },
 
@@ -204,17 +253,11 @@
       }
       catch (e) {
         console.log(e);
-
-        let alertBox = document.createElement("px-alert-message");
-        alertBox.messageTitle=`Uh Oh!`;
-        alertBox.message = `The machine data couldnt be parsed, See the console for details!`;
-        alertBox.visible = true;
-        alertBox.type="important";
-        alertBox.action="dismiss";
-        alertBox.hideBadge="true";
-        alertBox.autoDismiss = 5000;
-
-        Polymer.dom(this.$.alertMessageContainer).appendChild(alertBox);
+        this.displayAlert(
+          'Uh Oh!',
+          'The machine data couldnt be parsed, See the console for details!',
+          'important'
+        );
       }
     },
     _machinePutSuccess: function (event, ironRequest) {
@@ -254,44 +297,56 @@
       catch (e) {
         console.log(e);
 
-        let alertBox = document.createElement("px-alert-message");
-        alertBox.messageTitle=`Uh Oh!`;
-        alertBox.message = `The booking data couldnt be parsed, See the console for details!`;
-        alertBox.visible = true;
-        alertBox.type="important";
-        alertBox.action="dismiss";
-        alertBox.hideBadge="true";
-        alertBox.autoDismiss = 5000;
-
-        Polymer.dom(this.$.alertMessageContainer).appendChild(alertBox);
+        this.displayAlert(
+          'Uh Oh!',
+          'The booking data couldnt be parsed, See the console for details!',
+          'important'
+        );
       }
     },
     restSuccess: function(ironRequest) {
-      let alertBox = document.createElement("px-alert-message");
-      console.log(ironRequest.xhr);
-      alertBox.messageTitle=`Woo Hoo!`;
-      alertBox.message = `${ironRequest.status} (${ironRequest.statusText})` +
-          ` - Request to ${ironRequest.xhr.responseURL} completed successfuly!`;
-      alertBox.visible = true;
-      alertBox.type="information";
-      alertBox.action="dismiss";
-      alertBox.hideBadge="true";
-      alertBox.autoDismiss = 5000;
-
-      Polymer.dom(this.$.alertMessageContainer).appendChild(alertBox);
+      this.displayAlert(
+        'Woo Hoo!',
+        `${ironRequest.status} (${ironRequest.statusText})` +
+            ` - Request to ${ironRequest.xhr.responseURL} completed successfuly!`,
+        'information'
+      );
     },
     _restFail: function(event, ironRequest) {
-      console.log(this.$.alertMessageContainer);
 
+      if (ironRequest.request.__data__.status !== 500) {
+        if (ironRequest.request.__data__.status === 0) {
+          this.displayAlert(
+            'Uh Oh!',
+            `404 - That endpoint doesn't exist`,
+            'important'
+          );
+        } else {
+          this.displayAlert(
+            'Uh Oh!',
+            `${ironRequest.error} - ${ironRequest.request.__data__.statusText}`,
+            'important'
+          );
+        }
+      }
+      else {
+        this.displayAlert(
+          'Woo Hoo!',
+          'The endpoint exists!',
+          'information'
+        );
+      }
+    },
+
+    displayAlert: function(title, message, type) {
       let alertBox = document.createElement("px-alert-message");
-      alertBox.messageTitle=`Uh Oh!`;
-      alertBox.message = `${ironRequest.error} - ${ironRequest.request.__data__.statusText}`;
+      alertBox.messageTitle=title;
+      alertBox.message = message;
+      alertBox.type=type;
       alertBox.visible = true;
-      alertBox.type="important";
       alertBox.action="dismiss";
       alertBox.hideBadge="true";
       alertBox.autoDismiss = 5000;
-
       Polymer.dom(this.$.alertMessageContainer).appendChild(alertBox);
     },
 
