@@ -1,6 +1,6 @@
 ---
 applications:
-  - name: Conference-Booking-UI-App # Step 1: Change your application name
+  - name: sample-user-interface # Step 1: Change your application name
     buildpack: staticfile_buildpack
     memory: 256M
     stack: cflinuxfs2
